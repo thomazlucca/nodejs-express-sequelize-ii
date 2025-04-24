@@ -52,7 +52,7 @@ class Controller {
     try {
       await this.entidadeService.excluiRegistro(Number(id));
       return res.status(200).json({ mensagem: `id ${id} deletado` });
-    } catch (error) {
+    } catch (erro) {
       return res.status(500).json({ erro: erro.message });
     }
   }
