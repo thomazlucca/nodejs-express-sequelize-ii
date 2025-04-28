@@ -1,4 +1,6 @@
 'use strict';
+const isCpfValido = require('../../utils/validaCpfHelper.js');
+
 const {
   Model
 } = require('sequelize');
@@ -10,15 +12,42 @@ module.exports = (sequelize, DataTypes) => {
       });
       Pessoa.hasMany(models.Matricula, {
         foreignKey: 'estudante_id',
-        // scope: { status: 'matriculado' },
+        scope: { status: 'matriculado' },
         as: 'aulasMatriculadas'
+      });
+      Pessoa.hasMany(models.Matricula, {
+        foreignKey: 'estudante_id',
+        as: 'todasAsMatriculas'
       });
     }
   }
   Pessoa.init({
-    nome: DataTypes.STRING,
-    email: DataTypes.STRING,
-    cpf: DataTypes.STRING,
+    nome: {
+      type: DataTypes.STRING,
+      validate: {
+        len: {
+          args: [3,30],
+          msg: 'o campo deve ter entre 3 e 30 caracteres'
+        }
+      }
+    },
+    email: {
+      type: DataTypes.STRING,
+      validate: {
+        isEmail: {
+          args: true,
+          msg: 'formato do e-mail inválido'
+        }
+      }
+    },
+    cpf: {
+      type: DataTypes.STRING,
+      validate: {
+        cpfEhValido: (cpf) => {
+          if (!isCpfValido(cpf)) throw new Error('número de CPF inválido');
+        }
+      }
+    },
     ativo: DataTypes.BOOLEAN,
     role: DataTypes.STRING
   }, {
@@ -26,6 +55,16 @@ module.exports = (sequelize, DataTypes) => {
     modelName: 'Pessoa',
     tableName: 'pessoas',
     paranoid: true,
+    defaultScope: {
+      where: {
+        ativo: true,
+      }
+    },
+    scopes: {
+      todosOsRegistros: {
+        where: {}
+      }
+    }
   });
   return Pessoa;
 };
